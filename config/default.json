@@ -1,0 +1,40 @@
+{
+    "SATELLITE_SYSTEM": [
+        {
+            "NAME": "GPS",
+            "URL": "https://celestrak.com/NORAD/elements/gp.php?GROUP=gps-ops&FORMAT=json",
+            "SEMI-MAJOR": 26560000,
+            "ORBITAL_HEIGHT": 20180000,
+            "GS": {
+                "NAME": "WGS84",
+                "EQUATORIAL_RADIUS": 6378137,
+                "RECIPROCALS_FLATTERING": 298.257223563
+            }
+        },
+        {
+            "NAME": "GLONASS",
+            "URL": "https://celestrak.com/NORAD/elements/gp.php?GROUP=glo-ops&FORMAT=json",
+            "SEMI-MAJOR": 25420000,
+            "ORBITAL_HEIGHT": 19100000,
+            "GS": {
+                "NAME": "PZ-90.11",
+                "EQUATORIAL_RADIUS": 6378136,
+                "RECIPROCALS_FLATTERING": 298.257839303 
+            }
+        },
+        {
+            "NAME": "GALILEO",
+            "URL": "https://celestrak.com/NORAD/elements/gp.php?GROUP=galileo&FORMAT=json",
+            "SEMI-MAJOR": 29640000,
+            "ORBITAL_HEIGHT": 23222000,
+            "GS": "GTRF"
+        },
+        {
+            "NAME": "BEIDOU",
+            "URL": "https://celestrak.com/NORAD/elements/gp.php?GROUP=beidou&FORMAT=json",
+            "SEMI-MAJOR": 27906100,
+            "ORBITAL_HEIGHT": 21528000,
+            "GS": "CGS-2000"
+        }
+    ]
+}
