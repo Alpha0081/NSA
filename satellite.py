@@ -2,7 +2,7 @@ import json
 
 import numpy as np
 
-from orbit import Orbit
+from .orbit import Orbit
 
 
 class Satellite:

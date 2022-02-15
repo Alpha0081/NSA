@@ -1,9 +1,8 @@
 from time import mktime, strptime
 
 import numpy as np
-from utils.basis import Basis
-from utils.vector import Vector
-
+from .utils.basis import Basis
+from .utils.vector import Vector
 
 class Earth:
     def __init__(self, current_time: float):

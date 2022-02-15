@@ -4,7 +4,7 @@ from time import time, sleep
 
 import numpy as np
 
-from satellitesystem import SatelliteSystem
+from .satellitesystem import SatelliteSystem
 
 
 class SatelliteAnalyzer:

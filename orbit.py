@@ -1,7 +1,7 @@
 import numpy as np
 
-from utils.basis import Axis, Basis
-from utils.vector import Vector
+from .utils.basis import Axis, Basis
+from .utils.vector import Vector
 
 
 class Orbit:

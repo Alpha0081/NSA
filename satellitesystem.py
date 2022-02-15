@@ -3,8 +3,8 @@ import time
 
 import numpy as np
 
-from satellite import Satellite
-from net.almanacdownloader import AlmanacDownloader 
+from .satellite import Satellite
+from .net.almanacdownloader import AlmanacDownloader 
 
 class SatelliteSystem:
     def __init__(self, name_system: str, semi_major: float, almanac_url: str, root_path: str, current_time: float = time.time() + 1):

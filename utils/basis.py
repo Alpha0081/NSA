@@ -1,5 +1,5 @@
 import numpy as np
-from utils.vector import Vector
+from .utils.vector import Vector
 from enum import Enum, auto
 
 
