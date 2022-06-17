@@ -1,7 +1,17 @@
 import numpy as np
+import numpy.typing as npt
 
-from .utils.basis import Axis, Basis
-from .utils.vector import Vector
+from utils.basis import Axis, Basis, CartesianBasis
+
+
+class EccentricityValueError(Exception):
+    def __str__(self) -> str:
+        return "Eccentricity less than 0 or more or equal than 1"
+
+
+class SemiMajorValueError(Exception):
+    def __str__(self) -> str:
+        return "Semi-major less or equal 0"
 
 
 class Orbit:
@@ -13,24 +23,52 @@ class Orbit:
         periapsis: float,
         semi_major: float,
     ):
-        self.__eccentricity = eccentricity
-        self.__inclination = inclination
-        self.__raan = raan
-        self.__periapsis = periapsis
-        self.__semi_major = semi_major
-        self.__semi_minor = (1 - eccentricity ** 2) ** 0.5 * semi_major
-        self.__basis = self.get_basis()
+        self.__validate(eccentricity, semi_major)
 
-    def get_basis(self) -> Basis:
-        cartesian_basis = Basis(
-            Vector([1.0, 0.0, 0.0]), Vector([0.0, 1.0, 0.0]), Vector([0.0, 0.0, 1.0])
+        self.__eccentricity: float = eccentricity
+        self.__inclination: float = inclination
+        self.__raan: float = raan
+        self.__periapsis: float = periapsis
+        self.__semi_major: float = semi_major
+        self.__semi_minor: float = (1 - eccentricity ** 2) ** 0.5 * semi_major
+        self.__get_basis()
+
+    def __validate(
+        self,
+        eccentricity: float,
+        semi_major: float,
+    ) -> bool:
+        self.__validate_eccentricity(eccentricity)
+        self.__validate_semi_major(semi_major)
+        return True
+
+    def __validate_eccentricity(self, eccentricity: float) -> bool:
+        if not 0 <= eccentricity < 1:
+            raise EccentricityValueError
+        return True
+
+    def __validate_semi_major(self, semi_major: float) -> bool:
+        if semi_major <= 0:
+            raise SemiMajorValueError
+        return True
+
+    @property
+    def basis(self) -> Basis:
+        return self.__basis
+
+    def __get_basis(self) -> bool:
+        cartesian_basis: Basis = CartesianBasis()
+        raan_rotate_basis: Basis = cartesian_basis.rotate(self.__raan)
+        inclination_rotate_basis: Basis = raan_rotate_basis.rotate(
+            -self.__inclination, Axis.OY
         )
-        raan_rotate_basis = cartesian_basis.rotate(self.__raan)
-        inclination_rotate_basis = raan_rotate_basis.rotate(self.__inclination, Axis.OX)
-        return inclination_rotate_basis.rotate(self.__periapsis)
+        self.__basis = inclination_rotate_basis.rotate(self.__periapsis)
+        return True
 
-    def get_current_coordinate(self, current_true_anomaly: float) -> np.ndarray:
-        x = np.cos(current_true_anomaly)
+    def get_current_coordinates(
+        self, current_true_anomaly: float
+    ) -> npt.NDArray[np.float64]:
+        x = np.cos(current_true_anomaly) * self.__semi_major
         y_sign = 1 if np.sin(current_true_anomaly) >= 0 else 0
         y = (
             (-1) ** (y_sign + 1)
@@ -39,9 +77,9 @@ class Orbit:
         )
         z = 0
         vector = np.array((x, y, z))
-        return np.dot(self.__basis.get_matrix().transpose(), vector)
+        return np.dot(self.__basis.matrix.transpose(), vector)
 
-    def get_next_coordinate(self, mean_anomaly: float) -> np.ndarray:
+    def get_next_coordinate(self, mean_anomaly: float) -> npt.NDArray[np.float64]:
         current_E = 0
         previous_E = 1
         eps = 1e-12
@@ -52,21 +90,21 @@ class Orbit:
         y = np.sin(current_E) * self.__semi_minor
         z = 0
         vector = np.array((x, y, z))
-        return np.dot(self.__basis.get_matrix().transpose(), vector)
+        return np.dot(self.__basis.matrix.transpose(), vector)
 
-    def get_trace(self) -> np.ndarray:
-        x_axis: np.ndarray = np.zeros(100)
-        y_axis: np.ndarray = np.zeros(100)
-        z_axis: np.ndarray = np.zeros(100)
-        basis: np.ndarray = self.get_basis().get_matrix().transpose()
+    def get_trace(self, size=50) -> npt.NDArray[np.float64]:
+        x_axis: np.ndarray = np.zeros(size)
+        y_axis: np.ndarray = np.zeros(size)
+        z_axis: np.ndarray = np.zeros(size)
+        basis: np.ndarray = self.basis.matrix.transpose()
         eccentricity: float = self.__eccentricity
         semi_major: float = self.__semi_major
         semi_minor: float = (1 - eccentricity ** 2) ** 0.5 * semi_major
-        x_axis1: np.ndarray = np.linspace(-semi_major, semi_major, 50)
+        x_axis1: np.ndarray = np.linspace(-semi_major, semi_major, int(size // 2))
         y_axis1: np.ndarray = (1 - x_axis1 ** 2 / semi_major ** 2) ** 0.5 * semi_minor
-        y_axis[:50] = y_axis1
-        y_axis[50:] = -y_axis1
-        x_axis[:50] = x_axis1
-        x_axis[50:] = -x_axis1
+        y_axis[: int(size // 2)] = y_axis1
+        y_axis[int(size // 2) :] = -y_axis1
+        x_axis[: int(size // 2)] = x_axis1
+        x_axis[int(size // 2) :] = -x_axis1
         matrix: np.ndarray = np.array((x_axis, y_axis, z_axis))
         return np.dot(basis, matrix)
