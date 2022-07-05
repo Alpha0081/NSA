@@ -56,7 +56,6 @@ class Basis:
 
     def rotate(self, angle: float, axis_of_rotation: Axis = Axis.OZ) -> Basis:
         radian_angle = angle * np.pi / 180
-        print(type(axis_of_rotation))
         match axis_of_rotation:
             case Axis.OZ:
                 x, y, z = self._basis[2].coords

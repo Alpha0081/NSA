@@ -1,8 +1,7 @@
-import json
-
 import numpy as np
+import numpy.typing as npt
 
-from .orbit import Orbit
+from orbit import Orbit
 
 
 class Satellite:
@@ -17,25 +16,18 @@ class Satellite:
         pericenter: float,
         anomaly: float,
         semi_major: int,
+        norad: int,
     ) -> None:
-        self.name = name
-        self.__epoch = epoch
-        self.__motion = 2 * np.pi * motion / 86400
-        self.__anomaly = anomaly * np.pi / 180
-        self.__orbit = Orbit(eccentricity, inclination, raan, pericenter, semi_major)
-        self.__set_start_coords()
-
-    def draw(self):
-        pass
-
-    def get_height(self) -> float:
-        out = 0
-        for coord in self.__coords:
-            out += coord ** 2
-        return (out ** 0.5 - 6378137) / 1e3
-
-    def __set_start_coords(self) -> None:
-        self.__coords = self.__orbit.get_current_coordinate(self.__anomaly)
+        self.__coords: npt.NDArray[np.float64] = np.zeros(3, dtype=float)
+        self.__name: str = name
+        self.__epoch: str = epoch
+        self.__motion: float = 2 * np.pi * motion / 86400
+        self.__anomaly: float = anomaly * np.pi / 180
+        self.__orbit: Orbit = Orbit(
+            eccentricity, inclination, raan, pericenter, semi_major
+        )
+        self.__coords: npt.NDArray[np.float64] = self.__orbit.get_coords(self.__anomaly)
+        self.__norad: int = norad
 
     def move(self, time: float = 1) -> None:
         self.__anomaly += time * self.__motion
@@ -43,28 +35,27 @@ class Satellite:
             self.__anomaly -= 2 * np.pi
         elif self.__anomaly < -np.pi:
             self.__anomaly += 2 * np.pi
-        self.__coords = self.__orbit.get_next_coordinate(self.__anomaly)
+        self.__coords = self.__orbit.get_coords(self.__anomaly)
 
-    def get_coords(self) -> np.ndarray:
+    @property
+    def norad(self) -> str:
+        return str(self.__norad)
+
+    @property
+    def coords(self) -> npt.NDArray[np.float64]:
         return self.__coords
 
-    def get_epoch(self) -> str:
+    @property
+    def epoch(self) -> str:
         return self.__epoch
 
-    def get_trace(self):
-        pass
+    def get_trace(self, size: int = 50) -> np.ndarray:
+        return self.__orbit.get_trace(size)
 
-    def disable_visible(self) -> None:
-        self.__isVisible = False
+    @property
+    def name(self) -> str:
+        return self.__name
 
-    def enable_visible(self) -> None:
-        self.__isVisible = True
-
-    def get_visible(self) -> bool:
-        return self.__isVisible
-
-    def handler_visible_changed(self) -> None:
-        self.__isVisible = not self.__isVisible
-
-    __isVisible = True
-    __coords = np.zeros(3)
+    @property
+    def anomaly(self) -> float:
+        return self.__anomaly
